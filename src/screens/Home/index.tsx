@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
 import { SectionList, Text } from 'react-native';
 
@@ -8,6 +8,7 @@ import user from '../../../assets/user.png';
 import { Button } from '../../components/Button';
 import { Loading } from '../../components/Loading';
 import { PercentCard } from '../../components/PercentCard';
+import { getMealsGroupedByDay } from '../../storage/meal/MealGetGroupedByDay';
 import {
     Container,
     Header,
@@ -52,46 +53,20 @@ export default function Home() {
 		);
 	}
 
-	useEffect(() => {
+	async function initComponent(): Promise<void> {
 		setIsLoading(true);
+		// AsyncStorage.setItem(MEAL_COLLECTION, '');
 
-		const newData = [
-			{
-				title: '18.07.23',
-				data: [
-					{
-						hour: '20:00',
-						name: 'Pizza',
-						is_diet: false
-					},
-					{
-						hour: '20:00',
-						name: 'Salada',
-						is_diet: true
-					}
-				],
-			},
-			{
-				title: '17.07.23',
-				data: [
-					{
-						hour: '20:00',
-						name: 'Pizza',
-						is_diet: false
-					},
-					{
-						hour: '20:00',
-						name: 'Salada',
-						is_diet: true
-					}
-				],
-			},
-		];
+		const mealsGroupedByDayData = await getMealsGroupedByDay();
 
-		setData(newData);
+		setData(mealsGroupedByDayData);
 
 		setIsLoading(false);
-	}, []);
+	}
+
+	useFocusEffect(useCallback(() => {
+		initComponent();
+	}, []));
 
 	return (
 		<Container>
@@ -116,7 +91,7 @@ export default function Home() {
 					sections={data}
 					showsVerticalScrollIndicator={false}
 					keyExtractor={(item, index) => item + index}
-					renderSectionHeader={({ section: { title } }) => renderSection(title)}
+					renderSectionHeader={({ section: { day } }) => renderSection(day)}
 					renderItem={({ item, index, section }) => renderItem(item, index, section)}
 					contentContainerStyle={[{ paddingBottom: 20 }, data.length === 0 && { flex: 1 }]}
 				/>
